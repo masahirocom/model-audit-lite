@@ -62,6 +62,7 @@ def main(argv=None):
 
     p_audit = sub.add_parser("audit", help="File-distribution safety audit only (no model loading)")
     p_audit.add_argument("repo_id")
+    p_audit.add_argument("--lang", default="ja", choices=["ja", "en"])
     p_audit.add_argument("-o", "--output", default=None, help="Write markdown to this file instead of stdout")
 
     p_probe = sub.add_parser("probe", help="Run the safety-probe prompt suite (requires loading the model)")
@@ -82,7 +83,7 @@ def main(argv=None):
 
     if args.command == "audit":
         result = audit_repo(args.repo_id)
-        md = build_file_audit_section(result)
+        md = build_file_audit_section(result, lang=getattr(args, "lang", "ja"))
         _emit(md, args.output)
 
     elif args.command == "probe":
@@ -95,7 +96,7 @@ def main(argv=None):
         audit_result = audit_repo(args.repo_id)
         generate_fn = _make_generate_fn(args.backend, args.repo_id, args.max_tokens)
         probe_report = run_probes(generate_fn, source=args.lang)
-        md = write_security_md(audit_result=audit_result, probe_report=probe_report, repo_id=args.repo_id)
+        md = write_security_md(audit_result=audit_result, probe_report=probe_report, repo_id=args.repo_id, lang=args.lang)
         _emit(md, args.output)
 
 
