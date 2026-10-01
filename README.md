@@ -150,6 +150,23 @@ If you find a real gap this suite misses, that's the point — add a case and se
 - The `compare` command's `--probes` mode re-runs the *same* heuristic marker-based
   judgment on both models — it inherits the same false-positive/negative limitations,
   just applied twice and diffed.
+- **Scaling to thousands of prompts is not the roadmap, and wouldn't help.** Prompt
+  injection isn't a problem you converge toward solving by sampling harder — LLMs have
+  no hard boundary between "instruction" and "data" for more test cases to triangulate,
+  and attackers adapt to whatever test set you publish. Even heavily red-teamed frontier
+  models still show double-digit injection success rates in benchmarks like CyberSecEval
+  (26-41% across every model tested in v2) — that's a structural property of current LLM
+  architectures, not a sign that existing test suites are merely too small. Ten prompts
+  per category and ten thousand measure the same ceiling with different precision; they
+  don't raise it. What actually extends coverage is adding **new attack categories** as
+  novel techniques emerge, not multiplying phrasing variants within existing ones — so
+  that's where this suite's own test set is meant to grow. Treat results as a **directional
+  read of known-pattern exposure** (useful for comparing categories, or for diffing a
+  conversion's behavior against its source), not a path toward provable robustness.
+  Actual mitigation of prompt injection has to happen at the application layer — don't
+  let model output trigger actions without a check, treat all externally-sourced content
+  as data rather than instructions downstream, minimize what the model is privileged to
+  do — regardless of how many probes pass.
 
 ## Example output
 
