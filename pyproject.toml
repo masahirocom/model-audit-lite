@@ -1,7 +1,7 @@
 [project]
 name = "model-audit-lite"
-version = "0.1.0"
-description = "Lightweight, extensible safety/distribution audit for Hugging Face models: pickle/custom-code detection + checksum + a small known-pattern prompt-injection probe suite."
+version = "0.2.0"
+description = "Lightweight safety audit for Hugging Face models: file-distribution audit, a conversion-integrity diff (chat_template + safety-probe regressions between a source and a converted repo), and a small known-pattern prompt-injection probe suite."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.9"

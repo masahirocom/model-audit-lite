@@ -10,15 +10,21 @@
 
     model-audit-lite full <repo_id> --backend mlx-lm [--lang ja|en] [-o SECURITY.md]
         両方を実行し、Markdownレポートを書き出す。
+
+    model-audit-lite compare <base_repo_id> <derived_repo_id> [--probes] [--lang ja|en] [-o report.md]
+        変換の完全性監査。変換元リポジトリと変換後リポジトリの`chat_template`を比較し、
+        改変を検出する。`--probes`を付けると、同一の安全性プローブを両方のモデルに実行し、
+        判定が変化した項目（特に安全→危険のレグレッション）だけを報告する。
 """
 from __future__ import annotations
 
 import argparse
 import sys
 
+from .conversion_audit import diff_chat_template, diff_probe_results
 from .file_audit import audit_repo
 from .probes.runner import run_probes
-from .report import build_file_audit_section, build_probe_section, write_security_md
+from .report import build_file_audit_section, build_probe_section, write_comparison_report, write_security_md
 
 
 def _make_generate_fn(backend: str, repo_id: str, max_tokens: int):
@@ -79,6 +85,19 @@ def main(argv=None):
     p_full.add_argument("--max-tokens", type=int, default=300)
     p_full.add_argument("-o", "--output", default="SECURITY.md")
 
+    p_compare = sub.add_parser(
+        "compare",
+        help="Conversion-integrity audit: diff chat_template and (optionally) safety-probe results between a source and a converted repo",
+    )
+    p_compare.add_argument("base_repo_id", help="The original (pre-conversion) repo")
+    p_compare.add_argument("derived_repo_id", help="The converted repo")
+    p_compare.add_argument("--probes", action="store_true", help="Also run and diff the safety-probe suite (loads both models)")
+    p_compare.add_argument("--base-backend", default="transformers", choices=["mlx-lm", "transformers"])
+    p_compare.add_argument("--derived-backend", default="mlx-lm", choices=["mlx-lm", "transformers"])
+    p_compare.add_argument("--lang", default="ja", choices=["ja", "en"])
+    p_compare.add_argument("--max-tokens", type=int, default=300)
+    p_compare.add_argument("-o", "--output", default=None)
+
     args = parser.parse_args(argv)
 
     if args.command == "audit":
@@ -97,6 +116,27 @@ def main(argv=None):
         generate_fn = _make_generate_fn(args.backend, args.repo_id, args.max_tokens)
         probe_report = run_probes(generate_fn, source=args.lang)
         md = write_security_md(audit_result=audit_result, probe_report=probe_report, repo_id=args.repo_id, lang=args.lang)
+        _emit(md, args.output)
+
+    elif args.command == "compare":
+        template_diff = diff_chat_template(args.base_repo_id, args.derived_repo_id)
+        probe_diff = None
+        probe_total = 0
+        if args.probes:
+            base_fn = _make_generate_fn(args.base_backend, args.base_repo_id, args.max_tokens)
+            derived_fn = _make_generate_fn(args.derived_backend, args.derived_repo_id, args.max_tokens)
+            base_report = run_probes(base_fn, source=args.lang)
+            derived_report = run_probes(derived_fn, source=args.lang)
+            probe_diff = diff_probe_results(base_report, derived_report)
+            probe_total = derived_report.total
+        md = write_comparison_report(
+            template_diff=template_diff,
+            probe_diff=probe_diff,
+            probe_total=probe_total,
+            base_repo_id=args.base_repo_id,
+            derived_repo_id=args.derived_repo_id,
+            lang=args.lang,
+        )
         _emit(md, args.output)
 
 
