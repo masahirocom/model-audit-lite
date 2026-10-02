@@ -135,6 +135,9 @@ model-audit-lite probe <repo_id> --probe-set ja-injection --max-tokens 300
 Dataset card and per-category results: https://huggingface.co/datasets/masahiroid/japanese-indirect-prompt-injection-probes
 (v0.1; directional only, see "What this is *not*").
 
+For agentic, tool-using evaluation in Japanese (user tasks plus injection tasks with state-based checks), see the
+unofficial Japanese localization of AgentDojo: https://github.com/masahirocom/agentdojo-ja
+
 ## Extending the probe suite
 
 Prompts live in plain YAML (`model_audit_lite/probes/default_prompts_{ja,en}.yaml`).
