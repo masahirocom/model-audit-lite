@@ -185,3 +185,16 @@ model-audit-lite probe <repo_id> --probe-set ja-injection --max-tokens 300
 ## License
 
 MIT
+
+## 変換系譜つきML-BOM（`bom`）
+
+1コマンドで、このツールが把握している情報（ファイル別SHA-256、pickle/カスタムコードの指摘、検出した形式、`--base`指定時は
+`pedigree.ancestors`による変換系譜とchat_templateの検査結果）をまとめたCycloneDX 1.6のML-BOMを出力します。単独でも、
+他ツールが作ったBOMへ`--merge`で統合してもよく、成果物は1つの文書に保てます。
+
+```bash
+model-audit-lite bom your/converted-model --base original-org/base-model -o bom.json
+model-audit-lite bom your/converted-model --base original-org/base-model --merge owasp-aibom.json -o merged.json
+```
+
+プロパティ名は`model-audit-lite:`接頭辞です。系譜は公開者の申告に基づくもので、重みの検証ではありません。

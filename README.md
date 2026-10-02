@@ -138,6 +138,19 @@ Dataset card and per-category results: https://huggingface.co/datasets/masahiroi
 For agentic, tool-using evaluation in Japanese (user tasks plus injection tasks with state-based checks), see the
 unofficial Japanese localization of AgentDojo: https://github.com/masahirocom/agentdojo-ja
 
+## ML-BOM with conversion lineage (`bom`)
+
+One command writes a CycloneDX 1.6 ML-BOM that bundles what this tool already knows: SHA-256 per file, pickle /
+custom-code findings, detected formats, and (with `--base`) the conversion lineage as `pedigree.ancestors` plus the
+chat-template check. It stands alone, or merges into a BOM from another generator so you keep one document:
+
+```bash
+model-audit-lite bom your/converted-model --base original-org/base-model -o bom.json
+model-audit-lite bom your/converted-model --base original-org/base-model --merge owasp-aibom.json -o merged.json
+```
+
+Properties use the `model-audit-lite:` prefix. Lineage is as declared by the publisher; this is not a verification of weights.
+
 ## Extending the probe suite
 
 Prompts live in plain YAML (`model_audit_lite/probes/default_prompts_{ja,en}.yaml`).

@@ -11,6 +11,9 @@
     model-audit-lite full <repo_id> --backend mlx-lm [--lang ja|en] [-o SECURITY.md]
         両方を実行し、Markdownレポートを書き出す。
 
+    model-audit-lite bom <repo_id> [--base <source_repo_id>] [--merge existing-bom.json] [-o bom.json]
+        CycloneDX 1.6 ML-BOM（ファイルのチェックサム・指摘・変換系譜）。他ツールのBOMにマージ可能。
+
     model-audit-lite compare <base_repo_id> <derived_repo_id> [--probes] [--lang ja|en] [-o report.md]
         変換の完全性監査。変換元リポジトリと変換後リポジトリの`chat_template`を比較し、
         改変を検出する。`--probes`を付けると、同一の安全性プローブを両方のモデルに実行し、
@@ -100,6 +103,15 @@ def main(argv=None):
     p_compare.add_argument("--max-tokens", type=int, default=300)
     p_compare.add_argument("-o", "--output", default=None)
 
+    p_bom = sub.add_parser(
+        "bom",
+        help="Write a CycloneDX 1.6 ML-BOM: file checksums, findings and (with --base) conversion lineage; optionally merge into another BOM",
+    )
+    p_bom.add_argument("repo_id")
+    p_bom.add_argument("--base", default=None, help="Source repo this one was converted/derived from (adds pedigree + chat-template check)")
+    p_bom.add_argument("--merge", default=None, help="Existing CycloneDX JSON (e.g. from OWASP AIBOM Generator / cdxgen) to merge into")
+    p_bom.add_argument("-o", "--output", default=None)
+
     args = parser.parse_args(argv)
 
     if args.command == "audit":
@@ -119,6 +131,31 @@ def main(argv=None):
         probe_report = run_probes(generate_fn, source=args.probe_set or args.lang)
         md = write_security_md(audit_result=audit_result, probe_report=probe_report, repo_id=args.repo_id, lang=args.lang)
         _emit(md, args.output)
+
+    elif args.command == "bom":
+        import json
+
+        from huggingface_hub import HfApi
+
+        from .bom import build_bom, merge_into
+
+        api = HfApi()
+        info = api.model_info(args.repo_id)
+        card = getattr(info, "card_data", None)
+        base_rev = api.model_info(args.base).sha if args.base else None
+        bom = build_bom(
+            audit_repo(args.repo_id, api=api),
+            base_repo_id=args.base,
+            base_revision=base_rev,
+            revision=info.sha,
+            license_id=getattr(card, "license", None) if card else None,
+            tags=list(info.tags or []),
+            template_diff=diff_chat_template(args.base, args.repo_id) if args.base else None,
+        )
+        if args.merge:
+            with open(args.merge, encoding="utf-8") as f:
+                bom = merge_into(json.load(f), bom)
+        _emit(json.dumps(bom, ensure_ascii=False, indent=2), args.output)
 
     elif args.command == "compare":
         template_diff = diff_chat_template(args.base_repo_id, args.derived_repo_id)
