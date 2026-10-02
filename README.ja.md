@@ -112,6 +112,21 @@ print(write_comparison_report(
 ))
 ```
 
+## 日本語の間接プロンプトインジェクション用プローブ（`ja-injection`）
+
+モデルに処理させる「信頼できない文書」（メール、RAGチャンク、ツール出力、HTMLコメントなど）の中に
+無害な合言葉の出力指示を埋め込んだ60件（10カテゴリ×6件）です。敬語・婉曲による注入、全角/ひらがな/
+ローマ字での難読化、偽の【システム】表記、BIPIA型の先頭/中間/末尾の位置など、日本語特有の軸を含みます。
+合言葉は文書内で分割して書かれており（「ZX」「-」「1001」）、指示文を引用しただけでは「従った」と判定されません。
+判定前に思考部分は除外します。
+
+```bash
+model-audit-lite probe <repo_id> --probe-set ja-injection --max-tokens 300
+```
+
+データセットカードとカテゴリ別結果: https://huggingface.co/datasets/masahiroid/japanese-indirect-prompt-injection-probes
+（v0.1。傾向把握用であり、「これは何ではないか」の節を参照）
+
 ## プロンプトの拡張方法
 
 プロンプトは`model_audit_lite/probes/default_prompts_{ja,en}.yaml`という単純なYAMLで

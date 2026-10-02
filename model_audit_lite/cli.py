@@ -75,6 +75,7 @@ def main(argv=None):
     p_probe.add_argument("repo_id")
     p_probe.add_argument("--backend", default="mlx-lm", choices=["mlx-lm", "transformers"])
     p_probe.add_argument("--lang", default="ja", choices=["ja", "en"])
+    p_probe.add_argument("--probe-set", default=None, help="Probe set: ja, en, ja-injection, or a YAML path (default: same as --lang)")
     p_probe.add_argument("--max-tokens", type=int, default=300)
     p_probe.add_argument("-o", "--output", default=None)
 
@@ -82,6 +83,7 @@ def main(argv=None):
     p_full.add_argument("repo_id")
     p_full.add_argument("--backend", default="mlx-lm", choices=["mlx-lm", "transformers"])
     p_full.add_argument("--lang", default="ja", choices=["ja", "en"])
+    p_full.add_argument("--probe-set", default=None, help="Probe set: ja, en, ja-injection, or a YAML path (default: same as --lang)")
     p_full.add_argument("--max-tokens", type=int, default=300)
     p_full.add_argument("-o", "--output", default="SECURITY.md")
 
@@ -107,14 +109,14 @@ def main(argv=None):
 
     elif args.command == "probe":
         generate_fn = _make_generate_fn(args.backend, args.repo_id, args.max_tokens)
-        report = run_probes(generate_fn, source=args.lang)
+        report = run_probes(generate_fn, source=args.probe_set or args.lang)
         md = build_probe_section(report, lang=args.lang)
         _emit(md, args.output)
 
     elif args.command == "full":
         audit_result = audit_repo(args.repo_id)
         generate_fn = _make_generate_fn(args.backend, args.repo_id, args.max_tokens)
-        probe_report = run_probes(generate_fn, source=args.lang)
+        probe_report = run_probes(generate_fn, source=args.probe_set or args.lang)
         md = write_security_md(audit_result=audit_result, probe_report=probe_report, repo_id=args.repo_id, lang=args.lang)
         _emit(md, args.output)
 

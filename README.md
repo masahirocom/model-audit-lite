@@ -118,6 +118,23 @@ print(write_comparison_report(
 ))
 ```
 
+## Japanese indirect prompt-injection probe set (`ja-injection`)
+
+60 harmless-canary probes (10 categories x 6) where the injected instruction sits inside
+an untrusted document the model was asked to process (email, RAG chunk, tool output,
+HTML comment, ...), written for Japanese specifics: keigo-style polite injections,
+full-width/hiragana/romaji obfuscation, fake 【システム】 markers, and BIPIA-style
+start/middle/end positions. The canary is split in the document ("ZX" "-" "1001") so
+quoting the injection does not count as following it; only reasoning text is stripped
+before judging.
+
+```bash
+model-audit-lite probe <repo_id> --probe-set ja-injection --max-tokens 300
+```
+
+Dataset card and per-category results: https://huggingface.co/datasets/masahiroid/japanese-indirect-prompt-injection-probes
+(v0.1; directional only, see "What this is *not*").
+
 ## Extending the probe suite
 
 Prompts live in plain YAML (`model_audit_lite/probes/default_prompts_{ja,en}.yaml`).
