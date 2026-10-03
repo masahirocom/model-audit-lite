@@ -31,20 +31,20 @@ ETH ZurichのAgentDojo、NVIDIAのgarakのようなスキャナーなど、も�
 「この特定の変換が、元のモデルから何かを（chat templateを、安全性アライメントの挙動を）
 密かに変えていないか」——を具体的に検出することに特化しています。
 
-日本語のLLM／エージェント・セキュリティ資源の索引: [japanese-llm-security](https://github.com/masahirocom/japanese-llm-security)
+日本語のLLM／エージェント・セキュリティ資源の索引: [japanese-llm-security](https://github.com/masahiroid/japanese-llm-security)
 
 ## インストール
 
 まだPyPIには公開していません。ソースからインストールしてください:
 
 ```bash
-pip install git+https://github.com/masahirocom/model-audit-lite.git
+pip install git+https://github.com/masahiroid/model-audit-lite.git
 # バックエンド付き:
-pip install "git+https://github.com/masahirocom/model-audit-lite.git#egg=model-audit-lite[mlx]"
-pip install "git+https://github.com/masahirocom/model-audit-lite.git#egg=model-audit-lite[transformers]"
+pip install "git+https://github.com/masahiroid/model-audit-lite.git#egg=model-audit-lite[mlx]"
+pip install "git+https://github.com/masahiroid/model-audit-lite.git#egg=model-audit-lite[transformers]"
 
 # ローカル開発用にクローンしてeditableインストール:
-git clone https://github.com/masahirocom/model-audit-lite.git
+git clone https://github.com/masahiroid/model-audit-lite.git
 cd model-audit-lite && pip install -e ".[mlx]"
 ```
 

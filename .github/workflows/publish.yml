@@ -1,7 +1,7 @@
 name: Publish to PyPI
 
 # Trusted Publishing (OIDC): no API token is stored anywhere. Register this workflow once at
-# https://pypi.org/manage/account/publishing/ (owner masahirocom, repo model-audit-lite, workflow publish.yml, environment pypi).
+# https://pypi.org/manage/account/publishing/ (owner masahiroid, repo model-audit-lite, workflow publish.yml, environment pypi).
 # Then publish by creating a GitHub Release (tag vX.Y.Z) or running this workflow manually.
 on:
   release:
