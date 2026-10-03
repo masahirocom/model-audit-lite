@@ -1,5 +1,7 @@
 # model-audit-lite
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23122770.svg)](https://doi.org/10.5281/zenodo.23122770)
+
 [日本語版はこちら (README.ja.md)](README.ja.md)
 
 A lightweight safety audit for Hugging Face models, with a focus on a gap

@@ -16,6 +16,7 @@ repository-artifact: "https://pypi.org/project/model-audit-lite/"
 license: MIT
 version: "0.5.3"
 date-released: "2026-10-03"
+doi: 10.5281/zenodo.23122770
 keywords:
   - llm-security
   - model-audit

@@ -1,5 +1,7 @@
 # model-audit-lite
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23122770.svg)](https://doi.org/10.5281/zenodo.23122770)
+
 [English version here (README.md)](README.md)
 
 Hugging Face上のモデルに対する、軽量な安全性監査ツールです。特に、重量級のツールでは
