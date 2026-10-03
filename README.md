@@ -37,6 +37,8 @@ built to look for — whether *this specific conversion* silently changed
 something (the chat template, the safety-alignment behavior) relative to the
 model you started from.
 
+Part of a set of Japanese LLM / agent security resources: [japanese-llm-security](https://github.com/masahirocom/japanese-llm-security).
+
 ## Install
 
 Not yet published to PyPI — install from source:
