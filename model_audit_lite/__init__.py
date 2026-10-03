@@ -28,4 +28,4 @@ __all__ = [
     "write_comparison_report",
 ]
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"

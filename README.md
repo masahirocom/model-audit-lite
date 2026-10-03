@@ -11,7 +11,7 @@ checks:
    execution risk), flags bundled custom code (`trust_remote_code`), and
    computes SHA256 checksums.
 2. **Conversion-integrity audit** (`compare`) — diffs a converted repo
-   against its source: does the **chat template** still match? Chat templates
+   against its source: does the **chat template** still match? (For GGUF repos the template lives inside the weights file; it is read from the GGUF metadata with range requests, without downloading the weights.) Chat templates
    are small Jinja2 programs that run on *every* inference call, and as of
    early 2026 they're one of the few parts of a model repo that neither the
    model card, the metadata viewer, nor Hugging Face's automated scanners

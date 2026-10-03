@@ -23,6 +23,18 @@ from huggingface_hub.utils import EntryNotFoundError
 from .probes.runner import ProbeReport
 
 
+def _gguf_template(repo_id: str, repo_type: str = "model") -> str | None:
+    """GGUF repos keep the template in the weights file's metadata; read it from there (range requests, no full download)."""
+    if repo_type != "model":
+        return None
+    try:
+        from .gguf_template import read_chat_template_from_hub
+        ggufs = sorted(f for f in HfApi().list_repo_files(repo_id) if f.endswith(".gguf"))
+        return read_chat_template_from_hub(repo_id, ggufs[0]) if ggufs else None
+    except Exception:
+        return None
+
+
 def _fetch_chat_template(repo_id: str, repo_type: str = "model") -> str | None:
     """chat templateを取り出す。優先順位:
 
@@ -42,12 +54,12 @@ def _fetch_chat_template(repo_id: str, repo_type: str = "model") -> str | None:
     try:
         path = hf_hub_download(repo_id, "tokenizer_config.json", repo_type=repo_type)
     except EntryNotFoundError:
-        return None
+        return _gguf_template(repo_id, repo_type)
     with open(path, encoding="utf-8") as f:
         config = json.load(f)
     template = config.get("chat_template")
     if template is None:
-        return None
+        return _gguf_template(repo_id, repo_type)
     if isinstance(template, list):
         for entry in template:
             if entry.get("name") == "default":

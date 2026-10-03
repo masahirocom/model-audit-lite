@@ -35,8 +35,12 @@ _FORMATS = [
     (".pth", "pytorch-pickle"),
 ]
 
+from .file_audit import _COREML_BLOB  # noqa: E402
+
 
 def detect_formats(filenames: list[str], tags: list[str] | None = None) -> list[str]:
+    # Core ML raw weight blobs (weights/weight.bin) are not pickle: keep them out of format detection.
+    filenames = [f for f in filenames if not _COREML_BLOB.search(f)]
     found: list[str] = []
     for ext, label in _FORMATS:
         if any(f.endswith(ext) or f".{ext.lstrip('.')}/" in f for f in filenames) and label not in found:

@@ -55,3 +55,8 @@ def test_merge_keeps_existing_and_adds_ours():
 
 def test_detect_formats():
     assert detect_formats(["a.gguf", "b.mlpackage/Data/x"]) == ["gguf", "coreml"]
+
+
+def test_coreml_weight_blob_is_not_detected_as_pickle():
+    fmts = detect_formats(["m.mlpackage/Data/com.apple.CoreML/weights/weight.bin", "m.mlpackage/Manifest.json"])
+    assert "pytorch-pickle" not in fmts and "coreml" in fmts
