@@ -34,7 +34,9 @@ from .probes.runner import run_probes
 from .report import build_file_audit_section, build_probe_section, write_comparison_report, write_security_md
 
 
-def _make_generate_fn(backend: str, repo_id: str, max_tokens: int):
+def _make_generate_fn(backend: str, repo_id: str, max_tokens: int, thinking: str = "default"):
+    # thinking: default (template default) | on | off  -> chat-template `enable_thinking` for reasoning models (e.g. Qwen3.5 family)
+    tmpl_kwargs = {} if thinking == "default" else {"enable_thinking": thinking == "on"}
     if backend == "mlx-lm":
         from mlx_lm import load, generate
 
@@ -42,7 +44,7 @@ def _make_generate_fn(backend: str, repo_id: str, max_tokens: int):
 
         def generate_fn(prompt: str) -> str:
             messages = [{"role": "user", "content": prompt}]
-            text = tokenizer.apply_chat_template(messages, add_generation_prompt=True)
+            text = tokenizer.apply_chat_template(messages, add_generation_prompt=True, **tmpl_kwargs)
             return generate(model, tokenizer, prompt=text, max_tokens=max_tokens, verbose=False)
 
         return generate_fn
@@ -58,7 +60,7 @@ def _make_generate_fn(backend: str, repo_id: str, max_tokens: int):
         def generate_fn(prompt: str) -> str:
             messages = [{"role": "user", "content": prompt}]
             inputs = tokenizer.apply_chat_template(
-                messages, add_generation_prompt=True, return_tensors="pt"
+                messages, add_generation_prompt=True, return_tensors="pt", **tmpl_kwargs
             )
             with torch.no_grad():
                 out = model.generate(inputs, max_new_tokens=max_tokens, do_sample=False)
@@ -84,6 +86,7 @@ def main(argv=None):
     p_probe.add_argument("--lang", default="ja", choices=["ja", "en"])
     p_probe.add_argument("--probe-set", default=None, help="Probe set: ja, en, ja-injection, or a YAML path (default: same as --lang)")
     p_probe.add_argument("--max-tokens", type=int, default=300)
+    p_probe.add_argument("--thinking", default="default", choices=["default", "on", "off"], help="chat-template enable_thinking for reasoning models")
     p_probe.add_argument("-o", "--output", default=None)
 
     p_full = sub.add_parser("full", help="Run both file audit and safety probes")
@@ -128,6 +131,7 @@ def main(argv=None):
     p_scan.add_argument("--probe-set", default=None, help="ja, en, ja-injection or a YAML path (default: --lang)")
     p_scan.add_argument("--lang", default="ja", choices=["ja", "en"])
     p_scan.add_argument("--max-tokens", type=int, default=300)
+    p_scan.add_argument("--thinking", default="default", choices=["default", "on", "off"], help="chat-template enable_thinking for reasoning models")
     p_scan.add_argument("-o", "--out-dir", default="audit-out")
     p_scan.add_argument("--fail-on", default="fail", choices=["fail", "warn", "never"], help="Exit non-zero on this status (for CI)")
 
@@ -139,7 +143,7 @@ def main(argv=None):
         _emit(md, args.output)
 
     elif args.command == "probe":
-        generate_fn = _make_generate_fn(args.backend, args.repo_id, args.max_tokens)
+        generate_fn = _make_generate_fn(args.backend, args.repo_id, args.max_tokens, args.thinking)
         report = run_probes(generate_fn, source=args.probe_set or args.lang)
         md = build_probe_section(report, lang=args.lang)
         _emit(md, args.output)
@@ -164,12 +168,12 @@ def main(argv=None):
         probe_total = 0
         if args.probes:
             source = args.probe_set or args.lang
-            fn = _make_generate_fn(args.backend, args.repo_id, args.max_tokens)
+            fn = _make_generate_fn(args.backend, args.repo_id, args.max_tokens, args.thinking)
             probe_report = run_probes(fn, source=source)
             del fn
             _free_model_memory()   # the two models are never resident together
             if args.base:
-                fn = _make_generate_fn(args.base_backend, args.base, args.max_tokens)
+                fn = _make_generate_fn(args.base_backend, args.base, args.max_tokens, args.thinking)
                 base_report = run_probes(fn, source=source)
                 del fn
                 _free_model_memory()
