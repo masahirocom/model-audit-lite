@@ -14,7 +14,7 @@ abstract: >-
 repository-code: "https://github.com/masahiroid/model-audit-lite"
 repository-artifact: "https://pypi.org/project/model-audit-lite/"
 license: MIT
-version: "0.5.2"
+version: "0.5.3"
 date-released: "2026-10-03"
 keywords:
   - llm-security
