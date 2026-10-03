@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software or data, please cite it using these metadata."
+title: "model-audit-lite"
+type: software
+authors:
+  - family-names: Nakatsugawa
+    given-names: Masahiro
+    orcid: "https://orcid.org/0009-0000-3224-0103"
+abstract: >-
+  Lightweight safety audit for Hugging Face models: file-distribution audit (pickle formats,
+  bundled code, SHA-256 of every file), conversion-integrity diff (chat template including
+  GGUF metadata, safety-probe regressions with statistics), CycloneDX ML-BOM output, and a
+  small known-pattern prompt-injection probe suite.
+repository-code: "https://github.com/masahiroid/model-audit-lite"
+repository-artifact: "https://pypi.org/project/model-audit-lite/"
+license: MIT
+version: "0.5.2"
+date-released: "2026-10-03"
+keywords:
+  - llm-security
+  - model-audit
+  - huggingface
+  - prompt-injection
+  - ml-bom
+  - cyclonedx
+  - supply-chain

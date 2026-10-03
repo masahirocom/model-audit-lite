@@ -1,0 +1,33 @@
+{
+  "title": "model-audit-lite",
+  "upload_type": "software",
+  "description": "Lightweight safety audit for Hugging Face models: file-distribution audit (pickle formats, bundled code, SHA-256 of every file), conversion-integrity diff (chat template including GGUF metadata, safety-probe regressions with statistics), CycloneDX ML-BOM output, and a small known-pattern prompt-injection probe suite.",
+  "creators": [
+    {
+      "name": "Nakatsugawa, Masahiro",
+      "orcid": "0009-0000-3224-0103"
+    }
+  ],
+  "license": "mit",
+  "keywords": [
+    "llm-security",
+    "model-audit",
+    "huggingface",
+    "prompt-injection",
+    "ml-bom",
+    "cyclonedx",
+    "supply-chain"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/masahiroid/model-audit-lite",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://pypi.org/project/model-audit-lite/",
+      "relation": "isAlternateIdentifier",
+      "scheme": "url"
+    }
+  ]
+}
