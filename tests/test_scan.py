@@ -22,7 +22,7 @@ def test_pickle_fails_and_custom_code_warns():
 
 def test_conversion_regression_fails(tmp_path):
     td = ChatTemplateDiff("base/x", "me/m", "a", "b", True)
-    pd = ProbeDiff(items=[ProbeRegression("p1", "c", True, False, "ok", "bad")])
+    pd = ProbeDiff(items=[ProbeRegression(f"p{i}", "c", True, False, "ok", "bad") for i in range(9)])  # 9 regressions: significant
     s = run_scan(CLEAN, tmp_path, lang="en", base_repo_id="base/x", template_diff=td, probe_diff=pd, probe_total=60)
     assert s["status"] == "fail" and set(s["fail"]) == {"chat-template-changed", "probe-regressions"}
     bom = json.loads((tmp_path / "bom.json").read_text())

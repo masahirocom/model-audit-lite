@@ -158,6 +158,14 @@ follows `--fail-on {fail,warn,never}` (default `fail`), so it can gate a CI job:
 - run: model-audit-lite scan ${{ vars.MODEL_REPO }} --base ${{ vars.BASE_REPO }} --lang en -o audit-out
 ```
 
+### Reading probe results with statistics
+
+`scan --probes` now reports the follow rate with a 95% Wilson interval, tests a before/after change on the *same* probes with an exact
+McNemar test, and states the size of difference the probe set can resolve (n=60: about 26 points between two independent runs, worst case).
+The verdict is statistical: `fail` only when the safe->unsafe shift is significant (p < 0.05, more regressions than improvements);
+more regressions that are within noise give a `warn` (`probe-regressions-not-significant`). Helpers: `model_audit_lite.stats`
+(`wilson_interval`, `mcnemar_exact`, `detectable_difference`). The two models of a paired run are loaded one after the other, never together.
+
 ## ML-BOM with conversion lineage (`bom`)
 
 One command writes a CycloneDX 1.6 ML-BOM that bundles what this tool already knows: SHA-256 per file, pickle /

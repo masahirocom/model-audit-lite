@@ -25,6 +25,7 @@
 from __future__ import annotations
 
 import argparse
+import gc
 import sys
 
 from .conversion_audit import diff_chat_template, diff_probe_results
@@ -163,9 +164,15 @@ def main(argv=None):
         probe_total = 0
         if args.probes:
             source = args.probe_set or args.lang
-            probe_report = run_probes(_make_generate_fn(args.backend, args.repo_id, args.max_tokens), source=source)
+            fn = _make_generate_fn(args.backend, args.repo_id, args.max_tokens)
+            probe_report = run_probes(fn, source=source)
+            del fn
+            _free_model_memory()   # the two models are never resident together
             if args.base:
-                base_report = run_probes(_make_generate_fn(args.base_backend, args.base, args.max_tokens), source=source)
+                fn = _make_generate_fn(args.base_backend, args.base, args.max_tokens)
+                base_report = run_probes(fn, source=source)
+                del fn
+                _free_model_memory()
                 probe_diff = diff_probe_results(base_report, probe_report)
                 probe_total = probe_report.total
         summary = run_scan(
@@ -227,6 +234,23 @@ def main(argv=None):
             lang=args.lang,
         )
         _emit(md, args.output)
+
+
+def _free_model_memory():
+    gc.collect()
+    try:
+        import mlx.core as mx
+
+        mx.clear_cache()
+    except Exception:
+        pass
+    try:
+        import torch
+
+        if torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+    except Exception:
+        pass
 
 
 def _emit(text: str, output: str | None):
