@@ -35,13 +35,13 @@ ETH ZurichのAgentDojo、NVIDIAのgarakのようなスキャナーなど、も�
 
 ## インストール
 
-まだPyPIには公開していません。ソースからインストールしてください:
+[PyPI](https://pypi.org/project/model-audit-lite/) からインストールできます:
 
 ```bash
-pip install git+https://github.com/masahiroid/model-audit-lite.git
+pip install model-audit-lite
 # バックエンド付き:
-pip install "git+https://github.com/masahiroid/model-audit-lite.git#egg=model-audit-lite[mlx]"
-pip install "git+https://github.com/masahiroid/model-audit-lite.git#egg=model-audit-lite[transformers]"
+pip install "model-audit-lite[mlx]"
+pip install "model-audit-lite[transformers]"
 
 # ローカル開発用にクローンしてeditableインストール:
 git clone https://github.com/masahiroid/model-audit-lite.git

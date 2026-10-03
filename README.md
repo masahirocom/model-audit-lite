@@ -41,13 +41,13 @@ Part of a set of Japanese LLM / agent security resources: [japanese-llm-security
 
 ## Install
 
-Not yet published to PyPI — install from source:
+From [PyPI](https://pypi.org/project/model-audit-lite/):
 
 ```bash
-pip install git+https://github.com/masahiroid/model-audit-lite.git
+pip install model-audit-lite
 # or, with a backend for the probe suite:
-pip install "git+https://github.com/masahiroid/model-audit-lite.git#egg=model-audit-lite[mlx]"
-pip install "git+https://github.com/masahiroid/model-audit-lite.git#egg=model-audit-lite[transformers]"
+pip install "model-audit-lite[mlx]"
+pip install "model-audit-lite[transformers]"
 
 # or clone and install editable for local development:
 git clone https://github.com/masahiroid/model-audit-lite.git
@@ -154,7 +154,7 @@ model-audit-lite scan your/converted-model --base original-org/base-model --prob
 follows `--fail-on {fail,warn,never}` (default `fail`), so it can gate a CI job:
 
 ```yaml
-- run: pip install git+https://github.com/masahiroid/model-audit-lite
+- run: pip install model-audit-lite
 - run: model-audit-lite scan ${{ vars.MODEL_REPO }} --base ${{ vars.BASE_REPO }} --lang en -o audit-out
 ```
 
