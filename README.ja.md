@@ -188,6 +188,19 @@ model-audit-lite probe <repo_id> --probe-set ja-injection --max-tokens 300
 
 MIT
 
+## 1コマンドで実行する `scan`
+
+ファイル監査、変換の比較（`--base`）、安全性プローブ（`--probes`）をまとめて実行し、**1つの出力ディレクトリ**に書き出します:
+`report.md`（人間向け）、`bom.json`（系譜つきCycloneDX 1.6）、`summary.json`（CI向けの `pass` / `warn` / `fail`）。
+
+```bash
+model-audit-lite scan your/converted-model --base original-org/base-model -o audit-out/        # 監査 + 比較 + BOM
+model-audit-lite scan your/converted-model --base original-org/base-model --probes --probe-set ja-injection -o audit-out/
+```
+
+`fail` は pickle ファイル・chat_template の変更・安全→危険のプローブ退行、`warn` は同梱のカスタムコードです。終了コードは
+`--fail-on {fail,warn,never}`（既定 `fail`）に従うので、CIのゲートにも使えます。
+
 ## 変換系譜つきML-BOM（`bom`）
 
 1コマンドで、このツールが把握している情報（ファイル別SHA-256、pickle/カスタムコードの指摘、検出した形式、`--base`指定時は

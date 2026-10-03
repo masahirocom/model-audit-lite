@@ -11,6 +11,9 @@
     model-audit-lite full <repo_id> --backend mlx-lm [--lang ja|en] [-o SECURITY.md]
         両方を実行し、Markdownレポートを書き出す。
 
+    model-audit-lite scan <repo_id> [--base <source_repo_id>] [--probes] [-o audit-out/]
+        上記を1コマンドで実行し、report.md・bom.json・summary.json（CI用、--fail-on）を出力する統合コマンド。
+
     model-audit-lite bom <repo_id> [--base <source_repo_id>] [--merge existing-bom.json] [-o bom.json]
         CycloneDX 1.6 ML-BOM（ファイルのチェックサム・指摘・変換系譜）。他ツールのBOMにマージ可能。
 
@@ -112,6 +115,21 @@ def main(argv=None):
     p_bom.add_argument("--merge", default=None, help="Existing CycloneDX JSON (e.g. from OWASP AIBOM Generator / cdxgen) to merge into")
     p_bom.add_argument("-o", "--output", default=None)
 
+    p_scan = sub.add_parser(
+        "scan",
+        help="One command: file audit + (with --base) conversion compare + (with --probes) safety probes -> report.md, bom.json, summary.json",
+    )
+    p_scan.add_argument("repo_id")
+    p_scan.add_argument("--base", default=None, help="Source repo (adds chat-template compare, BOM pedigree, and probe regression diff)")
+    p_scan.add_argument("--probes", action="store_true", help="Also run the safety probes (loads the model; with --base, on both)")
+    p_scan.add_argument("--backend", default="mlx-lm", choices=["mlx-lm", "transformers"])
+    p_scan.add_argument("--base-backend", default="transformers", choices=["mlx-lm", "transformers"])
+    p_scan.add_argument("--probe-set", default=None, help="ja, en, ja-injection or a YAML path (default: --lang)")
+    p_scan.add_argument("--lang", default="ja", choices=["ja", "en"])
+    p_scan.add_argument("--max-tokens", type=int, default=300)
+    p_scan.add_argument("-o", "--out-dir", default="audit-out")
+    p_scan.add_argument("--fail-on", default="fail", choices=["fail", "warn", "never"], help="Exit non-zero on this status (for CI)")
+
     args = parser.parse_args(argv)
 
     if args.command == "audit":
@@ -131,6 +149,38 @@ def main(argv=None):
         probe_report = run_probes(generate_fn, source=args.probe_set or args.lang)
         md = write_security_md(audit_result=audit_result, probe_report=probe_report, repo_id=args.repo_id, lang=args.lang)
         _emit(md, args.output)
+
+    elif args.command == "scan":
+        from huggingface_hub import HfApi
+
+        from .scan import run_scan
+
+        api = HfApi()
+        info = api.model_info(args.repo_id)
+        card = getattr(info, "card_data", None)
+        template_diff = diff_chat_template(args.base, args.repo_id) if args.base else None
+        probe_report = probe_diff = None
+        probe_total = 0
+        if args.probes:
+            source = args.probe_set or args.lang
+            probe_report = run_probes(_make_generate_fn(args.backend, args.repo_id, args.max_tokens), source=source)
+            if args.base:
+                base_report = run_probes(_make_generate_fn(args.base_backend, args.base, args.max_tokens), source=source)
+                probe_diff = diff_probe_results(base_report, probe_report)
+                probe_total = probe_report.total
+        summary = run_scan(
+            audit_repo(args.repo_id, api=api), args.out_dir, lang=args.lang, base_repo_id=args.base,
+            template_diff=template_diff, probe_report=probe_report, probe_diff=probe_diff, probe_total=probe_total,
+            revision=info.sha, base_revision=api.model_info(args.base).sha if args.base else None,
+            license_id=getattr(card, "license", None) if card else None, tags=list(info.tags or []),
+        )
+        print(f"[{summary['status'].upper()}] {args.repo_id} -> {args.out_dir}/ (report.md, bom.json, summary.json)", file=sys.stderr)
+        if summary["fail"]:
+            print("fail: " + ", ".join(summary["fail"]), file=sys.stderr)
+        if summary["warn"]:
+            print("warn: " + ", ".join(summary["warn"]), file=sys.stderr)
+        if args.fail_on == "fail" and summary["status"] == "fail" or args.fail_on == "warn" and summary["status"] != "pass":
+            sys.exit(1)
 
     elif args.command == "bom":
         import json

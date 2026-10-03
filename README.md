@@ -140,6 +140,24 @@ Dataset card and per-category results: https://huggingface.co/datasets/masahiroi
 For agentic, tool-using evaluation in Japanese (user tasks plus injection tasks with state-based checks), see the
 unofficial Japanese localization of AgentDojo: https://github.com/masahirocom/agentdojo-ja
 
+## One command: `scan`
+
+Runs the file audit, the conversion compare (with `--base`) and the safety probes (with `--probes`), and writes **one output
+directory**: `report.md` (human), `bom.json` (CycloneDX 1.6 with lineage) and `summary.json` (status `pass` / `warn` / `fail` for CI).
+
+```bash
+model-audit-lite scan your/converted-model --base original-org/base-model -o audit-out/        # audit + compare + BOM
+model-audit-lite scan your/converted-model --base original-org/base-model --probes --probe-set ja-injection -o audit-out/
+```
+
+`fail` = pickle files, a changed chat template, or a safe-to-unsafe probe regression; `warn` = bundled custom code. The exit code
+follows `--fail-on {fail,warn,never}` (default `fail`), so it can gate a CI job:
+
+```yaml
+- run: pip install git+https://github.com/masahirocom/model-audit-lite
+- run: model-audit-lite scan ${{ vars.MODEL_REPO }} --base ${{ vars.BASE_REPO }} --lang en -o audit-out
+```
+
 ## ML-BOM with conversion lineage (`bom`)
 
 One command writes a CycloneDX 1.6 ML-BOM that bundles what this tool already knows: SHA-256 per file, pickle /
